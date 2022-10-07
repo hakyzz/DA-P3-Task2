@@ -5,6 +5,7 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { AccountInfo, ParsedAccountData, PublicKey } from "@solana/web3.js";
 import type { NextPage } from 'next';
 import { useEffect, useRef, useState } from 'react';
+import '@solana/wallet-adapter-react-ui/styles.css';
 
 type TokenAccounts = {
   pubkey: PublicKey,
