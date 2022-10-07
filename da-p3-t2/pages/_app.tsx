@@ -1,13 +1,13 @@
-import '../styles/globals.css'
-import type { AppProps } from 'next/app'
-import React, { useMemo } from 'react';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { GlowWalletAdapter, PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import {
     WalletModalProvider
 } from '@solana/wallet-adapter-react-ui';
+import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
+import type { AppProps } from 'next/app';
+import { useMemo } from 'react';
+import '../styles/globals.css';
 
 require('@solana/wallet-adapter-react-ui/styles.css');
 
@@ -18,8 +18,8 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   const wallets = useMemo(
       () => [
-          new GlowWalletAdapter(),
           new PhantomWalletAdapter(),
+          new SolflareWalletAdapter()
       ],
       []
   );
