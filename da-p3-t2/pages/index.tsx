@@ -114,22 +114,16 @@ const Home: NextPage = () => {
       })
       .run()
 
-      try {
-        await metaplex
-        .nfts()
-        .update({ 
-            nftOrSft: nft,
-            uri: newUri
-        })
-        .run();
+      await metaplex
+      .nfts()
+      .update({ 
+          nftOrSft: nft,
+          uri: newUri
+      })
+      .run();
         
-        setUpdateButtonText("Update traits");
-        getNFTByMintId(nft.address.toBase58());
-      } catch(e) {
-        setUpdateErrorMessage("Something went wrong... Update unsuccessful");
-        setUpdateButtonText("Update traits");
-        console.log(e);
-      }
+      setUpdateButtonText("Update traits");
+      getNFTByMintId(nft.address.toBase58());
     } catch(e) {
       setUpdateErrorMessage("Something went wrong... Update unsuccessful");
       setUpdateButtonText("Update traits");
