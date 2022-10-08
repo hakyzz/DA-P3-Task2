@@ -95,16 +95,7 @@ const Home: NextPage = () => {
     }
   } 
 
-  const handleTraitSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    let newTraits: any = [];
-    setUpdateButtonText("Updating...");
-    traitRefs.current.map((trait: any, i: number) => {
-      if(trait && trait.value.length > 0 && traitValueRefs.current[i].value.length > 0) {
-        newTraits.push({"trait_type": trait.value, "value": traitValueRefs.current[i].value});
-      }
-    });
-
+  const updateNft = async (newTraits: any) => {
     try {
       const { uri: newUri } = await metaplex
       .nfts()
@@ -113,7 +104,7 @@ const Home: NextPage = () => {
         attributes: newTraits
       })
       .run()
-
+  
       await metaplex
       .nfts()
       .update({ 
@@ -121,7 +112,7 @@ const Home: NextPage = () => {
           uri: newUri
       })
       .run();
-        
+
       setUpdateButtonText("Update traits");
       getNFTByMintId(nft.address.toBase58());
     } catch(e) {
@@ -129,6 +120,19 @@ const Home: NextPage = () => {
       setUpdateButtonText("Update traits");
       console.log(e);
     }
+  }
+
+  const handleTraitSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    let newTraits: any = [];
+    setUpdateButtonText("Updating...");
+    traitRefs.current.map((trait: any, i: number) => {
+      if(trait && trait.value.length > 0 && traitValueRefs.current[i].value.length > 0) {
+        newTraits.push({"trait_type": trait.value, "value": traitValueRefs.current[i].value});
+      }
+    }); 
+
+    updateNft(newTraits);
   }
 
   const addTrait = async () => {
