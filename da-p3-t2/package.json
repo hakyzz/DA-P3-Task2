@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@metaplex-foundation/js": "0.16.0",
+    "@metaplex-foundation/js": "0.15.0",
     "@solana-mobile/wallet-adapter-mobile": "0.9.3",
     "@solana/spl-token": "0.3.5",
     "@solana/wallet-adapter-base": "0.9.17",

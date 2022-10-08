@@ -3,7 +3,7 @@ import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import '@solana/wallet-adapter-react-ui/styles.css';
-import { AccountInfo, clusterApiUrl, Connection, ParsedAccountData, PublicKey } from "@solana/web3.js";
+import { AccountInfo, ParsedAccountData, PublicKey } from "@solana/web3.js";
 import type { NextPage } from 'next';
 import { useEffect, useRef, useState } from 'react';
 
@@ -13,7 +13,7 @@ type TokenAccounts = {
 }
 
 const Home: NextPage = () => {
-  const connection = new Connection(clusterApiUrl("devnet"));
+  const { connection } = useConnection();
   const { publicKey } = useWallet();
   const [ tokenAccounts, setTokenAccounts ] = useState<TokenAccounts[]>([]);
   const [ nft, setNft ] = useState<any>({});
@@ -28,7 +28,7 @@ const Home: NextPage = () => {
   .use(bundlrStorage({
     address: 'https://devnet.bundlr.network',
     providerUrl: 'https://api.devnet.solana.com',
-    timeout: 60000,
+    timeout: 90000,
   }))
 
   useEffect(() => {
