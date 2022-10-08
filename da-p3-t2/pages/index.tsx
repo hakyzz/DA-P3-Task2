@@ -104,14 +104,18 @@ const Home: NextPage = () => {
         attributes: newTraits
       })
       .run()
+
+      console.log(newUri);
   
-      await metaplex
+      const updatedNft = await metaplex
       .nfts()
       .update({ 
           nftOrSft: nft,
           uri: newUri
       })
       .run();
+      
+      console.log(updatedNft);
 
       setUpdateButtonText("Update traits");
       getNFTByMintId(nft.address.toBase58());
