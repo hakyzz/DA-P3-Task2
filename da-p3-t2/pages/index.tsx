@@ -28,7 +28,7 @@ const Home: NextPage = () => {
   .use(bundlrStorage({
     address: 'https://devnet.bundlr.network',
     providerUrl: 'https://api.devnet.solana.com',
-    timeout: 90000,
+    timeout: 60000,
   }))
 
   useEffect(() => {
@@ -95,7 +95,16 @@ const Home: NextPage = () => {
     }
   } 
 
-  const updateNft = async (newTraits: any) => {
+  const handleTraitSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    let newTraits: any = [];
+    setUpdateButtonText("Updating...");
+    traitRefs.current.map((trait: any, i: number) => {
+      if(trait && trait.value.length > 0 && traitValueRefs.current[i].value.length > 0) {
+        newTraits.push({"trait_type": trait.value, "value": traitValueRefs.current[i].value});
+      }
+    });
+
     try {
       const { uri: newUri } = await metaplex
       .nfts()
@@ -105,9 +114,7 @@ const Home: NextPage = () => {
       })
       .run()
 
-      console.log(newUri);
-  
-      const updatedNft = await metaplex
+      await metaplex
       .nfts()
       .update({ 
           nftOrSft: nft,
@@ -115,8 +122,6 @@ const Home: NextPage = () => {
       })
       .run();
       
-      console.log(updatedNft);
-
       setUpdateButtonText("Update traits");
       getNFTByMintId(nft.address.toBase58());
     } catch(e) {
@@ -124,19 +129,6 @@ const Home: NextPage = () => {
       setUpdateButtonText("Update traits");
       console.log(e);
     }
-  }
-
-  const handleTraitSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    let newTraits: any = [];
-    setUpdateButtonText("Updating...");
-    traitRefs.current.map((trait: any, i: number) => {
-      if(trait && trait.value.length > 0 && traitValueRefs.current[i].value.length > 0) {
-        newTraits.push({"trait_type": trait.value, "value": traitValueRefs.current[i].value});
-      }
-    }); 
-
-    updateNft(newTraits);
   }
 
   const addTrait = async () => {
