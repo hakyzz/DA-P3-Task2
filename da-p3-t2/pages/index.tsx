@@ -2,10 +2,10 @@ import { bundlrStorage, Metaplex, walletAdapterIdentity } from "@metaplex-founda
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import '@solana/wallet-adapter-react-ui/styles.css';
 import { AccountInfo, ParsedAccountData, PublicKey } from "@solana/web3.js";
 import type { NextPage } from 'next';
 import { useEffect, useRef, useState } from 'react';
-import '@solana/wallet-adapter-react-ui/styles.css';
 
 type TokenAccounts = {
   pubkey: PublicKey,
@@ -20,9 +20,9 @@ const Home: NextPage = () => {
   const [ nftAttributes, setNftAttributes ] = useState<any>([]);
   const [ errorMessage, setErrorMessage ] = useState("");
   const [ updateErrorMessage, setUpdateErrorMessage ] = useState("");
+  const [ updateButtonText, setUpdateButtonText ] = useState("Update traits");
   const traitRefs = useRef<any>([]);
   const traitValueRefs = useRef<any>([]);
-  const [ traits, setTraits ] = useState<any>([]);
   const metaplex = Metaplex.make(connection)
   .use(walletAdapterIdentity(useWallet()))
   .use(bundlrStorage({
@@ -60,15 +60,15 @@ const Home: NextPage = () => {
     setTokenAccounts(accounts);
   }
 
-  const getNFTByMintId = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const getNFTByMintId = async (mintId: string) => {
     const isBase58 = (value: string): boolean => /^[A-HJ-NP-Za-km-z1-9]*$/.test(value);
     setUpdateErrorMessage("");
     setErrorMessage("");
 
-    if(e.target.value.length > 0 && isBase58(e.target.value)) { 
+    if(mintId.length > 0 && isBase58(mintId)) { 
       let mintAddress;
       try {
-        mintAddress = new PublicKey(e.target.value);
+        mintAddress = new PublicKey(mintId);
 
         try {
           const nft = await metaplex.nfts().findByMint({ mintAddress }).run();
@@ -84,7 +84,7 @@ const Home: NextPage = () => {
         setNftAttributes([]);
         setErrorMessage("Wrong Mint-Address");
       }
-    } else if(e.target.value.length === 0) {
+    } else if(mintId.length === 0) {
       setNft({});
       setNftAttributes([]);
       setErrorMessage("");
@@ -97,19 +97,20 @@ const Home: NextPage = () => {
 
   const handleTraitSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    let newTraits: any = [];
+    setUpdateButtonText("Updating...");
     traitRefs.current.map((trait: any, i: number) => {
-      if(trait.value && trait.value.length > 0 && traitValueRefs.current[i].value.length > 0) {
-        traits.push({"trait_type": trait.value, "value": traitValueRefs.current[i].value});
+      if(trait && trait.value.length > 0 && traitValueRefs.current[i].value.length > 0) {
+        newTraits.push({"trait_type": trait.value, "value": traitValueRefs.current[i].value});
       }
-    }); 
-    setTraits(traits);
+    });
 
     try {
       const { uri: newUri } = await metaplex
       .nfts()
       .uploadMetadata({
         ...nft.json,
-        attributes: traits
+        attributes: newTraits
       })
       .run()
 
@@ -122,13 +123,16 @@ const Home: NextPage = () => {
         })
         .run();
         
-        alert("Updated successfully");
+        setUpdateButtonText("Update traits");
+        getNFTByMintId(nft.address.toBase58());
       } catch(e) {
         setUpdateErrorMessage("Something went wrong... Update unsuccessful");
+        setUpdateButtonText("Update traits");
         console.log(e);
       }
     } catch(e) {
       setUpdateErrorMessage("Something went wrong... Update unsuccessful");
+      setUpdateButtonText("Update traits");
       console.log(e);
     }
   }
@@ -152,18 +156,21 @@ const Home: NextPage = () => {
       <div className="p-2 flex flex-1 justify-end">
         <WalletMultiButton />
       </div>
-      <div className="flex flex-col items-start mb-4">
-        <div className="max-w-sm mb-8">
-          <label htmlFor="mintAddress" className="block text-white text-sm font-bold mb-2">NFT Mint ID</label>
-          <input className="shadow appearance-none rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline" type="text" name="mintAddress" onChange={getNFTByMintId} />
-          {errorMessage && <div><span className="text-red-500 text-xs ">{errorMessage}</span></div>}
+      <div className="flex flex-wrap items-start mb-4">
+        <div className="w-screen">
+          <div className="max-w-sm mb-8">
+            <label htmlFor="mintAddress" className="block text-white text-sm font-bold mb-2">NFT Mint ID</label>
+            <input className="shadow appearance-none rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline" type="text" name="mintAddress" onChange={(e) => getNFTByMintId(e.target.value)} />
+            {errorMessage && <div><span className="text-red-500 text-xs ">{errorMessage}</span></div>}
+          </div>
         </div>
-        <div>
         {
           nft && nftAttributes.length > 0 && (
             <div>
-              <h1 className="mb-4">Traits</h1>
-              {publicKey && <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded focus:outline-none focus:shadow-outline" onClick={addTrait}>+</button>}
+              <div className="flex mb-4 items-center">
+                <h1 className="text-lg font-bold mr-4">Traits</h1>
+                {publicKey && <button className="bg-violet-800 hover:bg-violet-900 text-white font-bold py-2 px-3 rounded focus:outline-none focus:shadow-outline" onClick={addTrait}>+ Add trait</button>}
+              </div>
               <div className="flex flex-wrap">
                 <div className="flex flex-col items-end mb-4 mr-4">
                   {
@@ -185,32 +192,39 @@ const Home: NextPage = () => {
                 </div>
               </div>
 
-              {publicKey && <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded focus:outline-none focus:shadow-outline" onClick={handleTraitSubmit} type="button">Update traits</button>}
+              {publicKey && <button className="bg-violet-800 hover:bg-violet-900 text-white font-bold py-2 px-3 rounded focus:outline-none focus:shadow-outline" onClick={handleTraitSubmit} type="button">{updateButtonText}</button>}
               {updateErrorMessage && <div><span className="text-red-500 text-xs ">{updateErrorMessage}</span></div>}
             </div>
           )
         }
-        </div>
-      </div>
         {
-          tokenAccounts && (
-            <table>
-              <tbody>
-                {
-                  tokenAccounts.map((account: any, i: number) => {
-                    return (
-                      <tr key={i}>
-                        <td>Token Account Address {i + 1}: {account.pubkey.toString()}</td>
-                        <td>Mint: {account.account.data["parsed"]["info"]["mint"]}</td>
-                        <td>Amount: {account.account.data["parsed"]["info"]["tokenAmount"]["uiAmount"]}</td>
-                      </tr>
-                    )
-                  })
-                }
-              </tbody>
-            </table>
+          tokenAccounts.length > 0 && (
+            <div>
+              <h2 className="text-lg font-bold mb-4">SPL Tokens</h2>
+              <table>
+                <thead className="bg-violet-800 text-left">
+                  <tr>
+                    <th className="p-3">Token Account Address</th>
+                    <th className="p-3">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-violet-400">
+                  {
+                    tokenAccounts.map((account: any, i: number) => {
+                      return (
+                        <tr key={i}>
+                          <td className="p-3">{account.account.data["parsed"]["info"]["mint"]}</td>
+                          <td className="p-3 text-center">{account.account.data["parsed"]["info"]["tokenAmount"]["uiAmount"]}</td>
+                        </tr>
+                      )
+                    })
+                  }
+                </tbody>
+              </table>
+            </div>
           )
         }
+      </div>
     </div>
   )
 }
